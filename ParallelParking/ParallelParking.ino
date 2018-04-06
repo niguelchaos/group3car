@@ -15,7 +15,7 @@ const int ECHO_PIN_RIGHT = 6;
 GP2Y0A21 rearIR; // are we using infrared here??
 const int rearIR_PIN = 00; //don't know, need to check car
 
-float CAR_SIZE = 20;
+int CAR_SIZE = 20;
 boolean parkMode = false;
 
 
