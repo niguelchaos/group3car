@@ -22,8 +22,8 @@ boolean parkMode = false;
 void setup() {
   // put your setup code here, to run once:
   front.attach(TRIG_PIN_FRONT, ECHO_PIN_FRONT);
-  right.attach(TRIG_PIN_FRONT, ECHO_PIN_FRONT);
-  rearIR.attach(TRIG_PIN_RIGHT, ECHO_PIN_RIGHT);
+  right.attach(TRIG_PIN_RIGHT, ECHO_PIN_RIGHT);
+  rearIR.attach(rearIR_PIN);
   gyro.attach();
   encoderLeft.attach(2);
   encoderRight.attach(3);
@@ -32,6 +32,8 @@ void setup() {
   car.begin(encoderLeft, encoderRight, gyro);
   car.enableCruiseControl();
   gyro.begin();
+  Serial.begin(9600); //start the serial
+
 }
 
 void loop() {
@@ -46,7 +48,11 @@ void loop() {
     // start counting the space available for parking using odometer
     parkMode = true;
     detectSpotSize();
-  }
+    Serial.println("park");
+    Serial.println(right.getDistance());
+  } else {
+    parkMode = false;
+    Serial.println("can't park");
   }
 }
 
@@ -55,19 +61,19 @@ void handleInput() { //handle serial input if there is any
     char input = Serial.read(); //read everything that has been received so far and log down the last entry
     switch (input) {
       case 'l': //rotate counter-clockwise going forward
-        car.setSpeed(fSpeed);
-        car.setAngle(lDegrees);
+        car.setSpeed(20);
+        car.setAngle(-75);
         break;
       case 'r': //turn clock-wise
-        car.setSpeed(fSpeed);
-        car.setAngle(rDegrees);
+        car.setSpeed(20);
+        car.setAngle(75);
         break;
       case 'f': //go ahead
-        car.setSpeed(fSpeed);
+        car.setSpeed(20);
         car.setAngle(0);
         break;
       case 'b': //go back
-        car.setSpeed(bSpeed);
+        car.setSpeed(-20);
         car.setAngle(0);
         break;
       case 'p': // park
@@ -84,19 +90,18 @@ void handleInput() { //handle serial input if there is any
 void detectSpotSize() {
   encoderRight.begin();
   //float parkingSize = 0;
-  parkMode = true;
+  //parkMode = true;
 
   // if we have begun detecting a spot and then we once again detect an obstacle, and the spot is greater than
   // the car size, commence parking.
   // P.S I don't think we need the first condition in the OR statement below, but I'm still considering.
   //if(right.getDistance() <= 10 || encoderRight.distance() > CAR_SIZE * 2) {
-  if(right.getDistance() <= 10 && encoderRight.getDistance() > CAR_SIZE * 2 || right.getDistance() == 0 && encoderRight.distance() > CAR_SIZE * 2) {
+  if(right.getDistance() <= 10 && encoderRight.getDistance() > CAR_SIZE * 2 || right.getDistance() == 0 && encoderRight.getDistance() > CAR_SIZE * 2) {
       park();
-    }
   }
 }
 
 // Automatic parking
 void park() {
-
+  Serial.println(encoderRight.getDistance());
 }
