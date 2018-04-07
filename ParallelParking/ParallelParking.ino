@@ -1,6 +1,6 @@
 #include <Smartcar.h>
 
-Odometer encoderLeft, encoderRight;
+Odometer sonarLeft, sonarRight;
 Gyroscope gyro;
 Car car;
 
@@ -25,10 +25,10 @@ void setup() {
   right.attach(TRIG_PIN_RIGHT, ECHO_PIN_RIGHT);
   rearIR.attach(rearIR_PIN);
   gyro.attach();
-  encoderLeft.attach(2);
-  encoderRight.attach(3);
-  encoderLeft.begin();
-  encoderRight.begin();
+  sonarLeft.attach(2);
+  sonarRight.attach(3);
+  sonarLeft.begin();
+  sonarRight.begin();
   car.begin(encoderLeft, encoderRight, gyro);
   car.enableCruiseControl();
   gyro.begin();
@@ -43,17 +43,6 @@ void loop() {
   // the car fits
   car.updateMotors();
   handleInput();
-  if(right.getDistance() == 0){ //because when 0 it means distance is out of range and
-                                  // there is empty space 
-    // start counting the space available for parking using odometer
-    parkMode = true;
-    detectSpotSize();
-    Serial.println("park");
-    Serial.println(right.getDistance());
-  } else {
-    parkMode = false;
-    Serial.println("can't park");
-  }
 }
 
 void handleInput() { //handle serial input if there is any
@@ -77,6 +66,7 @@ void handleInput() { //handle serial input if there is any
         car.setAngle(0);
         break;
       case 'p': // park
+        parkMode = true;
         detectSpotSize();
         break;
       default: //if you receive something that you don't know, just stop
@@ -85,10 +75,9 @@ void handleInput() { //handle serial input if there is any
     }
   }
 }
-  
 
 void detectSpotSize() {
-  encoderRight.begin();
+  sonarRight.begin();
   //float parkingSize = 0;
   //parkMode = true;
 
@@ -96,12 +85,12 @@ void detectSpotSize() {
   // the car size, commence parking.
   // P.S I don't think we need the first condition in the OR statement below, but I'm still considering.
   //if(right.getDistance() <= 10 || encoderRight.distance() > CAR_SIZE * 2) {
-  if(right.getDistance() <= 10 && encoderRight.getDistance() > CAR_SIZE * 2 || right.getDistance() == 0 && encoderRight.getDistance() > CAR_SIZE * 2) {
+  if(right.getDistance() <= 10 && sonarRight.getDistance() > CAR_SIZE * 2 || right.getDistance() == 0 && sonarRight.getDistance() > CAR_SIZE * 2) {
       park();
   }
 }
 
 // Automatic parking
 void park() {
-  Serial.println(encoderRight.getDistance());
+  Serial.println(sonarRight.getDistance());
 }
