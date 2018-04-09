@@ -1,14 +1,14 @@
 #include <Smartcar.h>
 
-Odometer sonarLeft, sonarRight;
+Odometer odometerLeft, odometerRight; //whoops, this is the speed thingy, not the sound one.
 Gyroscope gyro;
 Car car;
 
-SR04 front; 
+SR04 frontSound; 
 const int TRIG_PIN_FRONT = 00; //don't know, need to check car
 const int ECHO_PIN_FRONT = 00; //SAME
 
-SR04 right; 
+SR04 rightSound; 
 const int TRIG_PIN_RIGHT = 7;
 const int ECHO_PIN_RIGHT = 6; 
 
@@ -30,7 +30,7 @@ void setup() {
   sonarLeft.begin();
   sonarRight.begin();
   car.begin(encoderLeft, encoderRight, gyro);
-  car.enableCruiseControl();
+  //car.enableCruiseControl();
   gyro.begin();
   Serial.begin(9600); //start the serial
 
@@ -77,7 +77,7 @@ void handleInput() { //handle serial input if there is any
 }
 
 void detectSpotSize() {
-  sonarRight.begin();
+  odometerRight.begin();
   //float parkingSize = 0;
   //parkMode = true;
 
@@ -85,12 +85,12 @@ void detectSpotSize() {
   // the car size, commence parking.
   // P.S I don't think we need the first condition in the OR statement below, but I'm still considering.
   //if(right.getDistance() <= 10 || encoderRight.distance() > CAR_SIZE * 2) {
-  if(right.getDistance() <= 10 && sonarRight.getDistance() > CAR_SIZE * 2 || right.getDistance() == 0 && sonarRight.getDistance() > CAR_SIZE * 2) {
+  if(rightSound.getDistance() <= 10 && odometerRight.getDistance() > CAR_SIZE * 2 || rightSound.getDistance() == 0 && odometerRight.getDistance() > CAR_SIZE * 2) {
       park();
   }
 }
 
 // Automatic parking
 void park() {
-  Serial.println(sonarRight.getDistance());
+  Serial.println(odometerRight.getDistance());
 }
