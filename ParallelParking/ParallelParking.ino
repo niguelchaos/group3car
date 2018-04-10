@@ -15,9 +15,12 @@ const int ECHO_PIN_RIGHT = 6;
 GP2Y0A21 rearIR; // are we using infrared here??
 const int rearIR_PIN = 00; //don't know, need to check car
 
-int CAR_SIZE = 20;
-boolean parkMode = false;
+const int CAR_SIZE = 20;
 
+const double CAR_LENGTH = 25; // Car length
+const double CAR_WIDTH = 15.5; // Car Width
+
+boolean parkMode = false;
 
 void setup() {
   // put your setup code here, to run once:
@@ -93,4 +96,56 @@ void detectSpotSize() {
 // Automatic parking
 void park() {
   Serial.println(odometerRight.getDistance());
+}
+
+//========== Get the Size of a Parking Spot ==========//
+double getParkingSpotSize() {
+  boolean obstacleDetected = false;
+
+  parkMode = true;
+  car.setSpeed(20);
+  odometer.begin();
+  rightSound.start();
+  car.go();
+
+  double initialSideDistance = rightSound.getDistance();
+
+  /*
+    If the initial side distance is too tight then start looking for a spot
+    that has a width that is greater than the car width.
+  */
+  if (initialSideDistance <= CAR_WIDTH) {
+    while(rightSound.getDistance() <= initialSideDistance) {
+      // Do nothing
+    }
+  }
+
+  /*
+    Once the distance to the right is large enough
+    we can start looking for the next obstacle that has a distance less then or equal to the car width
+    Or, until the distance traveled is greater than the car length
+  */
+
+  while(!obstacleDetected) {
+    double d = rightSound.getDistance();
+
+    // Stop if an obstacle is detected
+    if (d <= CAR_WIDTH) {
+      obstacleDetected = true;
+    }
+
+    // Stop if distance traveled is greater than or equal to twice the car size
+    if (odometer.getDistance() >= CAR_LENGTH * 2) {
+      obstacleDetected = true;
+    }
+
+  }
+
+  //----- Cleanup -----//
+  car.stop();
+  odometer.stop();
+  rightSound.stop();
+  parkMode = false;
+
+  return odometer.getDistance();
 }
