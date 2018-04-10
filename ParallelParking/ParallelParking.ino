@@ -5,12 +5,12 @@ Gyroscope gyro;
 Car car;
 
 SR04 frontSound; 
-const int TRIG_PIN_FRONT = 00; //don't know, need to check car
-const int ECHO_PIN_FRONT = 00; //SAME
+const int TRIG_PIN_FRONT = 6; //don't know, need to check car
+const int ECHO_PIN_FRONT = 7; //SAME
 
 SR04 rightSound; 
-const int TRIG_PIN_RIGHT = 7;
-const int ECHO_PIN_RIGHT = 6; 
+const int TRIG_PIN_RIGHT = 12;
+const int ECHO_PIN_RIGHT = 13; 
 
 GP2Y0A21 rearIR; // are we using infrared here??
 const int rearIR_PIN = 00; //don't know, need to check car
@@ -24,15 +24,15 @@ boolean parkMode = false;
 
 void setup() {
   // put your setup code here, to run once:
-  front.attach(TRIG_PIN_FRONT, ECHO_PIN_FRONT);
-  right.attach(TRIG_PIN_RIGHT, ECHO_PIN_RIGHT);
+  frontSound.attach(TRIG_PIN_FRONT, ECHO_PIN_FRONT);
+  rightSound.attach(TRIG_PIN_RIGHT, ECHO_PIN_RIGHT);
   rearIR.attach(rearIR_PIN);
   gyro.attach();
-  sonarLeft.attach(2);
-  sonarRight.attach(3);
-  sonarLeft.begin();
-  sonarRight.begin();
-  car.begin(encoderLeft, encoderRight, gyro);
+  odometerLeft.attach(2);
+  odometerRight.attach(3);
+  odometerLeft.begin();
+  odometerRight.begin();
+  car.begin(odometerLeft, odometerRight, gyro);
   //car.enableCruiseControl();
   gyro.begin();
   Serial.begin(9600); //start the serial
@@ -70,7 +70,7 @@ void handleInput() { //handle serial input if there is any
         break;
       case 'p': // park
         parkMode = true;
-        detectSpotSize();
+        getParkingSpotSize(odometerRight);
         break;
       default: //if you receive something that you don't know, just stop
         car.setSpeed(0);
@@ -99,14 +99,13 @@ void park() {
 }
 
 //========== Get the Size of a Parking Spot ==========//
-double getParkingSpotSize() {
+double getParkingSpotSize(Odometer odometer) {
   boolean obstacleDetected = false;
 
   parkMode = true;
   car.setSpeed(20);
   odometer.begin();
-  rightSound.start();
-  car.go();
+  car.begin();
 
   double initialSideDistance = rightSound.getDistance();
 
@@ -143,9 +142,8 @@ double getParkingSpotSize() {
 
   //----- Cleanup -----//
   car.stop();
-  odometer.stop();
-  rightSound.stop();
   parkMode = false;
 
+  Serial.println("return value:" + odometer.getDistance());
   return odometer.getDistance();
 }
