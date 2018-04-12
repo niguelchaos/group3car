@@ -15,7 +15,7 @@ SR04 rightSound;
 const int TRIG_PIN_RIGHT = 44;
 const int ECHO_PIN_RIGHT = 42; 
 
-GP2Y0A21 rearIR; // are we using infrared here??
+GP2Y0A21 rearIR;           // are we using infrared here??
 const int rearIR_PIN = 8; //don't know, need to check car
 
 
@@ -34,6 +34,7 @@ void setup() {
   gyro.attach();
   odometerLeft.attach(2);
   odometerRight.attach(3);
+  
   odometerLeft.begin();
   odometerRight.begin();
   car.begin(odometerLeft, odometerRight, gyro);
@@ -54,40 +55,43 @@ void loop() {
     }
 }
 
-void handleInput() { //handle serial input if there is any
+void handleInput() {             //handle serial input if there is any
   if (Serial3.available()) {
     char input = Serial3.read(); //read everything that has been received so far and log down the last entry
     switch (input) {
-      case 'l': //rotate counter-clockwise going forward
-   
+      
+      case 'l':                  //rotate counter-clockwise going forward
         car.setAngle(-75);
         car.setSpeed(62);
         delay(50);
         car.setSpeed(30);
         break;
+        
       case 'r': //turn clock-wise
-  
         car.setAngle(75);
         car.setSpeed(62);
         delay(50);
         car.setSpeed(30);
         break;
+        
       case 'f': //go ahead
         car.setAngle(0);
         car.setSpeed(62);
         delay(50);
         car.setSpeed(30);
         break;
+        
       case 'b': //go back
         car.setAngle(0);
         car.setSpeed(62);
         delay(50);
         car.setSpeed(30);
-
         break;
+        
       case 'p': // park
         park();
         break;
+        
       default: //if you receive something that you don't know, just stop
         car.setSpeed(0);
         car.setAngle(0);
@@ -104,7 +108,8 @@ double detectSpotSize() {
   // the car size, commence parking.
   // P.S I don't think we need the first condition in the OR statement below, but I'm still considering.
   //if(right.getDistance() <= 10 || encoderRight.distance() > CAR_SIZE * 2) {
-  if(rightSound.getDistance() <= 10 && odometerRight.getDistance() > CAR_SIZE * 2 || rightSound.getDistance() == 0 && odometerRight.getDistance() > CAR_SIZE * 2) {
+  if  (rightSound.getDistance() <= 10 && odometerRight.getDistance() > CAR_SIZE * 2 || 
+      rightSound.getDistance() == 0 && odometerRight.getDistance() > CAR_SIZE * 2) {
       park();
   }
 }
@@ -114,9 +119,7 @@ double detectSpotSize() {
 // Automatic parking
 void park() {
 
-
     parkMode = true;
-
 
   //check if there's enough space for parking
   
@@ -219,7 +222,24 @@ double getParkingSpotSize(Odometer odometer) {
 }
 
 void panic(){
-    //Cry in agony, not enough parking space
+  //Cry in agony, not enough parking space
+  
+  while(frontSound.getDistance() == 0 || frontSound.getDistance() > 10 &&
+         rightSound.getDistance() == 0 || rightSoundDistance() > 10 ){
+     car.setSpeed(62);
+     car.rotate(30);
+     car.setSpeed(90); //extreme speed
+     car.go(10);
+     car.setAngle(50);
+     car.setSpeed(65);
+     car.setMotorSpeed(60, -30);
+     car.go(40);
+     car.setSpeed(0);
+     
+     
+     
+     
+      }
 }
 
 
