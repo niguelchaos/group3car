@@ -226,19 +226,17 @@ void panic(){
   
   while(frontSound.getDistance() == 0 || frontSound.getDistance() > 10 &&
          rightSound.getDistance() == 0 || rightSoundDistance() > 10 ){
-     car.setSpeed(62);
-     car.rotate(30);
-     car.setSpeed(90); //extreme speed
-     car.go(10);
-     car.setAngle(50);
-     car.setSpeed(65);
-     car.setMotorSpeed(60, -30);
-     car.go(40);
-     car.setSpeed(0);
-     
-     
-     
-     
+           car.setSpeed(62);
+           car.rotate(30);
+           car.setSpeed(90); //extreme speed
+           car.go(10);
+           car.setAngle(50);
+           car.setSpeed(65);
+           car.setMotorSpeed(60, -30);
+           car.go(5);
+           car.setMotorSpeed(50, 40);
+           car.go(40);
+           car.setSpeed(0);
       }
 }
 
