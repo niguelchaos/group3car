@@ -129,7 +129,12 @@ void park() {
     //parkMode = false;
     //return;
   //}
+    int backDistance = rearIR.getDistance();
+    int frontDistance = frontSound.getDistance();
+    int rightDistance = rightSound.getDistance();
 
+    double rightOdoDistance = odometerRight.getDistance();
+    
     car.setAngle(0);
 
   //Reverse to the right
@@ -140,7 +145,7 @@ void park() {
     delay(50);
     car.setSpeed(30);
     //roll back till we get too close to the back object (40 just test number)
-    while(rearIR.getDistance() > 40){
+    while(BackDistance > 40){
         car.go(-5);
     }
     car.setSpeed(0);
@@ -157,14 +162,14 @@ void park() {
     car.setSpeed(30);
 
     // go forward till the distance between the front and back object is around the same
-    while(frontSound.getDistance() >= rearIR.getDistance()){
+    while(frontDistance >= backDistance){
       car.go(5);
     }
   
   car.setSpeed(0); 
   delay (200); 
 
-  Serial.println(odometerRight.getDistance());
+  Serial.println(rightOdoDistance);
 
   parkMode = false; //resume control
 
@@ -223,7 +228,7 @@ double getParkingSpotSize(Odometer odometer) {
 
 void panic(){
   //Cry in agony, not enough parking space
-  
+  car.setAngle(0);
   while(frontSound.getDistance() == 0 || frontSound.getDistance() > 10 &&
          rightSound.getDistance() == 0 || rightSoundDistance() > 10 ){
            car.setSpeed(62);
