@@ -1,9 +1,7 @@
 #include <Smartcar.h>
-#include <stdio.h>
-#include <time.h>
 
 
-Odometer odometerLeft, odometerRight; //whoops, this is the speed thingy, not the sound one.
+ 
 Gyroscope gyro;
 Car car;
 
@@ -16,18 +14,28 @@ const int TRIG_PIN_RIGHT = 44;
 const int ECHO_PIN_RIGHT = 42; 
 
 GP2Y0A21 rearIR;           // are we using infrared here??
-const int rearIR_PIN = 8; //don't know, need to check car
+const int rearIR_PIN = A8; //don't know, need to check car
 
+Odometer odometerLeft;
+Odometer odometerRight;
 
 const int CAR_SIZE = 25;
 const double CAR_LENGTH = 25; // Car length
 const double CAR_WIDTH = 15.5; // Car Width
 
 const int minParkSpotSize = 50;
+
+int backDistance = rearIR.getDistance();
+int frontDistance = frontSound.getDistance();
+int rightDistance = rightSound.getDistance();
+
+double rightOdoDistance = odometerRight.getDistance();
+    
 boolean parkMode = false;
 
 void setup() {
-  // put your setup code here, to run once:
+  car.begin();
+  
   frontSound.attach(TRIG_PIN_FRONT, ECHO_PIN_FRONT);
   rightSound.attach(TRIG_PIN_RIGHT, ECHO_PIN_RIGHT);
   rearIR.attach(rearIR_PIN);
@@ -37,10 +45,10 @@ void setup() {
   
   odometerLeft.begin();
   odometerRight.begin();
-  car.begin(odometerLeft, odometerRight, gyro);
+  
   //car.enableCruiseControl();
   gyro.begin();
-  Serial3.begin(9600); //start the serial
+  Serial.begin(9600); //start the serial
  
 }
 
@@ -49,12 +57,17 @@ void loop() {
   // check the distance from one detected obstacle to the right
   // to the next obstacle to the right to determine whether
   // the car fits
-  car.updateMotors();
-  if(!parkMode){
-      handleInput();
-    }
+  //car.updateMotors();
+  //Serial.println(rearIR.getDistance());
+  Serial.println(rightSound.getDistance());
+  delay(100);
+//    Serial.print("FrontDistance: ");
+//  Serial.println(frontDistance);
+//  if(!parkMode){
+//      handleInput();
+//    }
 }
-
+        
 void handleInput() {             //handle serial input if there is any
   const int fSpeed = 70; //70% of the full speed forward
   const int bSpeed = -70; //70% of the full speed backward
@@ -84,8 +97,8 @@ void handleInput() {             //handle serial input if there is any
         break;
         
       case 'b': //go back
-        car.setAngle(0);
         car.setSpeed(bSpeed);
+        car.setAngle(0);
         break;
         
       case 'p': // park
@@ -192,21 +205,21 @@ double getParkingSpotSize(Odometer odometer) {
 
   double initialSideDistance = rightSound.getDistance();
 
-  /*
-    If the initial side distance is too tight then start looking for a spot
-    that has a width that is greater than the car width.
-  */
+  
+//    If the initial side distance is too tight then start looking for a spot
+//    that has a width that is greater than the car width.
+  
   if (initialSideDistance <= CAR_WIDTH) {
     while(rightSound.getDistance() <= initialSideDistance) {
       // Do nothing
     }
   }
 
-  /*
-    Once the distance to the right is large enough
-    we can start looking for the next obstacle that has a distance less then or equal to the car width
-    Or, until the distance traveled is greater than the car length
-  */
+  
+//    Once the distance to the right is large enough
+//    we can start looking for the next obstacle that has a distance less then or equal to the car width
+//    Or, until the distance traveled is greater than the car length
+  
 
   while(!obstacleDetected) {
     double d = rightSound.getDistance();
@@ -238,8 +251,6 @@ void panic(){
     int frontDistance = frontSound.getDistance();
     int rightDistance = rightSound.getDistance();
     
-  while(frontDistance == 0 || frontDistance > 10 &&
-         rightDistance == 0 || rightDistance > 10 ){
            car.setSpeed(62);
            car.rotate(30);
            car.setSpeed(90); //extreme speed
@@ -251,7 +262,6 @@ void panic(){
            car.setMotorSpeed(50, 40);
            car.go(40);
            car.setSpeed(0);
-      }
 }
 
 

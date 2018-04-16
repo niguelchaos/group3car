@@ -9,8 +9,8 @@ const int rDegrees = 75; //degrees to turn right
 
 // initializes Ultrasonic sensor
 SR04 ultrasonicSensor;
-const int TRIGGER_PIN = 7; //7
-const int ECHO_PIN = 6;   //6
+const int TRIGGER_PIN = 44; //7
+const int ECHO_PIN = 42;   //6
 
 //for distances between 12 and 78 centimeters - Infrared 
 GP2Y0A21 sideFrontIR;
@@ -25,7 +25,7 @@ void setup() {
   car.begin();
   Serial.println("chicken");
   Serial.begin(9600);
-  Serial3.begin(9600);
+//  Serial3.begin(9600);
 
   //ultrasonic
   ultrasonicSensor.attach(TRIGGER_PIN, ECHO_PIN);
@@ -41,10 +41,10 @@ void setup() {
 void loop() {
 //   Serial.print(encoder.getDistance());
 
-//  Serial.println(sideFrontIR.getDistance());
-//  Serial.println(ultrasonicSensor.getDistance());
-//  delay(100);
-handleInput();
+  Serial.println(sideFrontIR.getDistance());
+  Serial.println(ultrasonicSensor.getDistance());
+  delay(100);
+//handleInput();
 
 }
 
