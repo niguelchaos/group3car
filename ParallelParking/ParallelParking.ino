@@ -34,8 +34,8 @@ double rightOdoDistance = odometerRight.getDistance();
 boolean parkMode = false;
 
 void setup() {
-  car.begin();
   
+  Serial.begin(9600); //start the serial
   frontSound.attach(TRIG_PIN_FRONT, ECHO_PIN_FRONT);
   rightSound.attach(TRIG_PIN_RIGHT, ECHO_PIN_RIGHT);
   rearIR.attach(rearIR_PIN);
@@ -48,7 +48,8 @@ void setup() {
   
   //car.enableCruiseControl();
   gyro.begin();
-  Serial.begin(9600); //start the serial
+  car.begin();
+ 
  
 }
 

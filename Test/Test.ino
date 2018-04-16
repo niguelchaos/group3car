@@ -12,6 +12,10 @@ SR04 ultrasonicSensor;
 const int TRIGGER_PIN = 44; //7
 const int ECHO_PIN = 42;   //6
 
+SR04 ultrasonicSensorFront;
+const int TRIG_PIN_FRONT = 6;
+const int ECHO_PIN_FRONT = 7;
+
 //for distances between 12 and 78 centimeters - Infrared 
 GP2Y0A21 sideFrontIR;
 const int SIDE_FRONT_PIN = A8; //use analog pins only
@@ -29,6 +33,7 @@ void setup() {
 
   //ultrasonic
   ultrasonicSensor.attach(TRIGGER_PIN, ECHO_PIN);
+  ultrasonicSensorFront.attach(TRIG_PIN_FRONT, ECHO_PIN_FRONT);
 
   //IR
   sideFrontIR.attach(SIDE_FRONT_PIN);
@@ -41,8 +46,9 @@ void setup() {
 void loop() {
 //   Serial.print(encoder.getDistance());
 
-  Serial.println(sideFrontIR.getDistance());
+//  Serial.println(sideFrontIR.getDistance());
   Serial.println(ultrasonicSensor.getDistance());
+  Serial.println(ultrasonicSensorFront.getDistance());
   delay(100);
 //handleInput();
 
