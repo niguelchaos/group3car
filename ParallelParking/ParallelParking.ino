@@ -56,6 +56,8 @@ void loop() {
 }
 
 void handleInput() {             //handle serial input if there is any
+  const int fSpeed = 70; //70% of the full speed forward
+  const int bSpeed = -70; //70% of the full speed backward
   if (Serial3.available()) {
     char input = Serial3.read(); //read everything that has been received so far and log down the last entry
     switch (input) {
@@ -64,28 +66,26 @@ void handleInput() {             //handle serial input if there is any
         car.setAngle(-75);
         car.setSpeed(62);
         delay(50);
-        car.setSpeed(30);
+        car.setSpeed(50);
         break;
         
       case 'r': //turn clock-wise
         car.setAngle(75);
         car.setSpeed(62);
         delay(50);
-        car.setSpeed(30);
+        car.setSpeed(50);
         break;
         
       case 'f': //go ahead
         car.setAngle(0);
         car.setSpeed(62);
         delay(50);
-        car.setSpeed(30);
+        car.setSpeed(50);
         break;
         
       case 'b': //go back
         car.setAngle(0);
-        car.setSpeed(62);
-        delay(50);
-        car.setSpeed(30);
+        car.setSpeed(bSpeed);
         break;
         
       case 'p': // park
