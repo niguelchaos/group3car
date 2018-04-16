@@ -149,7 +149,7 @@ void park() {
     delay(50);
     car.setSpeed(30);
     //roll back till we get too close to the back object (40 just test number)
-    while(BackDistance > 40){
+    while(backDistance > 40){
         car.go(-5);
     }
     car.setSpeed(0);
@@ -233,8 +233,13 @@ double getParkingSpotSize(Odometer odometer) {
 void panic(){
   //Cry in agony, not enough parking space
   car.setAngle(0);
-  while(frontSound.getDistance() == 0 || frontSound.getDistance() > 10 &&
-         rightSound.getDistance() == 0 || rightSoundDistance() > 10 ){
+
+    int backDistance = rearIR.getDistance();
+    int frontDistance = frontSound.getDistance();
+    int rightDistance = rightSound.getDistance();
+    
+  while(frontDistance == 0 || frontDistance > 10 &&
+         rightDistance == 0 || rightDistance > 10 ){
            car.setSpeed(62);
            car.rotate(30);
            car.setSpeed(90); //extreme speed
