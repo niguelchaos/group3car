@@ -91,6 +91,10 @@ void handleInput() {             //handle serial input if there is any
       case 'p': // park
         park();
         break;
+
+      case '1':
+        panic();
+        break;
         
       default: //if you receive something that you don't know, just stop
         car.setSpeed(0);
