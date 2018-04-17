@@ -147,3 +147,20 @@ double getParkingSpotSize(Odometer odometer) {
   Serial.println("return value:" + odometer.getDistance());
   return odometer.getDistance();
 }
+
+//========== Check if parking spot size is large enough ==========//
+/*
+  This variant of checking parking spots uses trigonometric calculation, instead of moving the car, to measure the distance.
+  This assumes that there is a sound sensor placed at the right side of the car, and one placed diagonally at the right-front corner of the car.
+*/
+boolean isParkingSpotAvailable() {
+  double spotHypotenuse = rightSound.getDistance(); // Sensor at the right-front of the car.
+  double spotWidth = frontSound.getDistance(); // Sensor on the ight side of the car.
+
+  double spotLength = sqrt(spotHypotenuse * spotHypotenuse - spotWidth * spotWidth);
+
+  if (spotWidth >= CAR_WIDTH && spotLength >= CAR_LENGTH) {
+    return true;
+  }
+  return false;
+}
