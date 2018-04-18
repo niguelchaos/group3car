@@ -50,8 +50,13 @@ void loop() {
   //delay(100);
   
   //car.updateMotors();
-  //park();
+//  car.setSpeed(-70);
+//  car.setSpeed (70);
   
+  park();
+  //Serial.println(gyro.getAngularDisplacement());
+  //gyro.update();
+  //delay(100);
   //if(!parkMode){
   //handleInput();
   //}
@@ -129,41 +134,63 @@ void park() {
     int backDistance = rearIR.getDistance();
     int frontDistance = frontSound.getDistance();
     int rightDistance = rightSound.getDistance();
+    int angularStartPoint = gyro.getAngularDisplacement();
 
     const int backSpd = -60;
     const int frontSpd = 60;
-    const int right = 75;
-    const int left = -75;
+    const int right = 30;
+    const int left = -30;
 
+    Serial.print("backDistance: " );
     Serial.println(backDistance);
     delay(100);
+
+    Serial.print("frontDistance: " );
+    Serial.println(frontDistance);
+    delay(150);
+
+    car.setSpeed(frontSpd);
+    car.setAngle(45);
   
     //roll back till we get too close to the back object (40 just test number)
-    if (backDistance > 40){
-      //Reverse to the right
-        car.setAngle(0);
-        car.setAngle(right);
+         //Reverse to the right
+    if (backDistance > 0 && frontDistance == 0){ //position parallel to car in front
+  
+      if(backDistance > 50){
+//        car.setAngle(0);
         car.setSpeed(backSpd); 
+        car.setAngle(RIGHT);
+        
+      }
+        if (backDistance > 30) {
+          car.setSpeed(backSpd);
+          car.setAngle(STRAIGHT);
+         
+        }
+        if (backDistance < 15) {
+          car.setSpeed(frontSpd);
+          car.setAngle(RIGHT);
+          
+        }
     }
+
     
-/*    if (backDistance > 21 && backDistance < 40) {
-      car.setAngle(0);
+ /*   if (backDistance > 21 && backDistance < 40 && frontDistance == 0){
+        car.setAngle(0); 
         car.setSpeed(backSpd);
-        car.setAngle(left); 
     }
-*/   
-    if (backDistance < 20 ) {
+
+    if (backDistance < 21 && backDistance > 14) {
+      car.setAngle(left);
+      car.setSpeed(backSpd);
+    }
+   
+    if (backDistance < 13 || (frontDistance > 1 && frontDistance < 10)) {
       car.setAngle(0);
         car.setSpeed(0);
         car.setAngle(0); 
     }
-    
-    if (frontDistance < 20) { 
-      car.setAngle(0);
-        car.setSpeed(0);
-        car.setAngle(0); 
-    }
-    
+*/    
   
 
     // go forward till the distance between the front and back object is around the same
