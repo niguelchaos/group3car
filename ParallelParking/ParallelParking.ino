@@ -36,39 +36,22 @@ void setup() {
 
   Serial.begin(9600); //start the serial
 }
+
 void loop() {
   
-  // check the distance from one detected obstacle to the right
-  // to the next obstacle to the right to determine whether
-  // the car fits
-  
-  //Serial.println(frontSound.getDistance()); // added to test where the issue arises
-  //delay(100);
-  
  car.updateMotors();
-//  car.setSpeed(-70);
-//  car.setSpeed (70);
-
-
-  /*Serial.println("Left odo speed:");
-  Serial.println(odometerLeft.getSpeed());
-  delay(100);
-  car.setMotorSpeed(0, -60);
-  delay(100);
-  car.go(-30);*/
-
-  park();
 
   //Serial.println(gyro.getAngularDisplacement());
   //gyro.update();
   //delay(100);
-  //if(!parkMode){
-  //handleInput();
-  //}
-  //else{
-    //park();
-  //}
+  if(!parkMode){
+  handleInput();
+  }
+  else{
+    park();
+  }
 }
+
 void handleInput() { //handle serial input if there is any
   if (Serial.available()) {
     char input = Serial.read(); //read everything that has been received so far and log down the last entry
@@ -106,18 +89,7 @@ void handleInput() { //handle serial input if there is any
     }
   }
 }
-/*double detectSpotSize() {
-  odometerRight.begin();
-  //float parkingSize = 0;
-  //parkMode = true;
-  // if we have begun detecting a spot and then we once again detect an obstacle, and the spot is greater than
-  // the car size, commence parking.
-  // P.S I don't think we need the first condition in the OR statement below, but I'm still considering.
-  //if(right.getDistance() <= 10 || encoderRight.distance() > CAR_SIZE * 2) {
-  if(rightSound.getDistance() <= 10 && odometerRight.getDistance() > CAR_SIZE * 2 || rightSound.getDistance() == 0 && odometerRight.getDistance() > CAR_SIZE * 2) {
-      park();
-  }
-}*/
+
 // Automatic parking
 void park() {
    
