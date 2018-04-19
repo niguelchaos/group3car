@@ -145,6 +145,7 @@ void park() {
     const int left = -40;
 
     static const int initialRightDistance = rightSound.getDistance();
+    static int turnCount = 0;
     
     Serial.print("Initial rightdistance:");
     Serial.println(initialRightDistance);
@@ -165,7 +166,14 @@ void park() {
     }
     if(rightDistance != initialRightDistance){
        car.setSpeed(0);
-       car.rotate(-30);
+       if (rightDistance == 0 && turnCount == 0){
+        Serial.println("Turning in");
+        Serial.print("Turncount:");
+        Serial.println(turnCount);
+        car.rotate(-30); 
+        turnCount++;
+       }
+       
     }
     
 //  Serial.println(odometerRight.getDistance());
