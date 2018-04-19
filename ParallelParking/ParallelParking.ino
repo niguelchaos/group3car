@@ -108,7 +108,7 @@ void park() {
  
   int backDistance = backSound.getMedianDistance();
   int frontDistance = frontSound.getMedianDistance();
-  int rightDistance = rightSound.getDistance();
+  int rightDistance = rightSound.getMedianDistance();
   int angularStartPoint = gyro.getAngularDisplacement();
   const int backSpd = -50;
   const int frontSpd = 50;
@@ -149,6 +149,13 @@ void park() {
     if(backDistance == 0 && frontDistance == 0){
       //Serial.println("All 0's!");
       car.rotate(-30);
+    }
+
+    if(backDistance < 10) {
+      if(frontDistance < 25) {
+        car.setSpeed(0);
+      }
+      car.rotate(30);
     }
     
     if(backDistance > 1 && backDistance < 5){
