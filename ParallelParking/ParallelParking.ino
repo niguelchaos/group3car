@@ -164,14 +164,27 @@ void park() {
     if(rightDistance == initialRightDistance) {
       car.setSpeed(backSpd);  
     }
-    if(rightDistance != initialRightDistance){
+    if(rightDistance != initialRightDistance){ 
        car.setSpeed(0);
-       if (rightDistance == 0 && turnCount == 0){
+       if (rightDistance == 0 && turnCount == 0){ //alternatively have rightdistance > initialrdis
         Serial.println("Turning in");
         Serial.print("Turncount:");
         Serial.println(turnCount);
         car.rotate(-30); 
         turnCount++;
+        car.setSpeed(0);
+       }
+       if (turnCount == 1) {
+        if (backDistance > 30){
+          car.setSpeed(-50);
+        }
+        if (backDistance < 30){
+          car.setSpeed(0);
+          if (turnCount == 1){
+            car.rotate(30);
+            turnCount++;
+          }
+        }
        }
        
     }
