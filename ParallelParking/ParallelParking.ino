@@ -62,7 +62,7 @@ void loop() {
   
   park();
   //Serial.println(gyro.getAngularDisplacement());
-  //gyro.update();
+  gyro.update();
   //delay(100);
   //if(!parkMode){
   //handleInput();
@@ -100,6 +100,31 @@ void handleInput() { //handle serial input if there is any
   }
 }
 
+void steeringAdjustment(){
+  Serial.println("displacement:");
+    Serial.println(gyroDplmnt);
+    delay(2000);
+    car.setSpeed(-60);
+    if(gyroDplmnt > 0 && gyroDplmnt <= 180){
+      if(gyroDplmnt < 90){
+        car.rotate(gyroDplmnt);
+      } else {
+        car.rotate(-gyroDplmnt); 
+      }
+    } else if(gyroDplmnt > 180 && gyroDplmnt <= 360){
+      int degreeAdjustment = 360 - gyroDplmnt;
+      Serial.println("gyroDplmnt");
+      Serial.println(gyroDplmnt);
+      Serial.println("degreeAdjustment:");
+      Serial.println(degreeAdjustment);
+      if(degreeAdjustment < 90){
+        car.rotate(-degreeAdjustment);  
+      } else {
+        car.rotate(degreeAdjustment);  
+      }
+    }
+}
+
 // Automatic parking
 void park() {
   Serial.println("hello");
@@ -114,6 +139,10 @@ void park() {
   const int frontSpd = 50;
   const int right = 40;
   const int left = -40;
+
+  unsigned int gyroDplmnt = gyro.getAngularDisplacement();
+
+  int initialRightDistance = rightSound.getMedianDistance();
     
   Serial.print("backDistance: " );
   Serial.println(backDistance);
@@ -145,7 +174,15 @@ void park() {
         }
     }*/
 
-    car.setSpeed(-50);
+    int rightDistDiff = initialRightDistance - rightDistance;
+
+    /*car.setSpeed(-50);
+    if(rightDistDiff < 2 && rightDistDiff > -2){ //car is parallel
+      car.rotate(-30-gyroDplmnt);
+    }*/
+
+
+    /*car.setSpeed(-50);
     if(backDistance == 0 && frontDistance == 0){
       //Serial.println("All 0's!");
       car.rotate(-30);
@@ -160,7 +197,7 @@ void park() {
     
     if(backDistance > 1 && backDistance < 5){
       car.setSpeed(0);
-    }
+    }*/
     
  /*   if (backDistance > 21 && backDistance < 40 && frontDistance == 0){
         car.setAngle(0); 
