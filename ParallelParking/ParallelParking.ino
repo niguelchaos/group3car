@@ -92,7 +92,7 @@ void handleInput() { //handle serial input if there is any
         break;
       case 'p': // park
         //park();
-        getParkingSpotSize(odometerLeft);
+//        getParkingSpotSize(odometerLeft);
         Serial.println("parking");
         break;
       default: //if you receive something that you don't know, just stop
@@ -139,8 +139,8 @@ void park() {
 
     
 
-    const int backSpd = -60;
-    const int frontSpd = 60;
+    const int backSpd = -50;
+    const int frontSpd = 50;
     const int right = 40;
     const int left = -40;
 
@@ -161,34 +161,69 @@ void park() {
     Serial.println(frontDistance);
     delay(100);
 
+    //start beside car in front
     if(rightDistance == initialRightDistance) {
       car.setSpeed(backSpd);  
     }
     if(rightDistance != initialRightDistance){ 
        car.setSpeed(0);
+       
        if (rightDistance == 0 && turnCount == 0){ //alternatively have rightdistance > initialrdis
         Serial.println("Turning in");
         Serial.print("Turncount:");
         Serial.println(turnCount);
-        car.rotate(-30); 
+
+        Serial.print("Initial rightdistance:");
+        Serial.println(initialRightDistance);
+        delay(100);
+        Serial.print("Right:");
+        Serial.println(rightDistance);
+        delay(150);
+        Serial.print("backDistance: " );
+        Serial.println(backDistance);
+        delay(100);
+
+        //rotate car in if space detected
+        car.rotate(-25); 
         turnCount++;
-        car.setSpeed(0);
        }
+       Serial.println("turnCount:");
+       Serial.println(turnCount);
+
+      
        if (turnCount == 1) {
-        if (backDistance > 30){
-          car.setSpeed(-50);
-        }
-        if (backDistance < 30){
-          car.setSpeed(0);
-          if (turnCount == 1){
+        if (backDistance > 15 || backDistance == 0){ 
+          //drive reverse into the space
+          Serial.println("Entering Space");
+          Serial.print("backDistance: " );
+          Serial.println(backDistance);
+          car.setSpeed(backSpd);
+         }
+         if (backDistance < 15 && backDistance > 1){
+            //stop if close to car in back
+            Serial.print("TurnCount - returning back: ");
+            car.setSpeed(0);
             car.rotate(30);
             turnCount++;
-          }
-        }
+            Serial.println(turnCount);
+        }           
        }
-       
-    }
-    
+        if (turnCount == 2){
+            Serial.println("turnCount == 2");
+            if( frontDistance > backDistance) {
+              Serial.println("going to middle of space");
+              car.setSpeed(frontSpd);
+            }
+            else if (frontDistance < backDistance){
+              car.setSpeed(backSpd);   
+            }
+            else if (frontDistance == backDistance){
+              car.setSpeed(0);
+              turnCount = 0;
+            }
+          }
+          
+        }  
 //  Serial.println(odometerRight.getDistance());
   parkMode = false; //resume control  
 }
