@@ -30,7 +30,7 @@ boolean parkMode = false;
 
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(9600); //start the serial
+  Serial.begin(19200); //start the serial
   gyro.attach();  
   frontSound.attach(TRIG_PIN_FRONT, ECHO_PIN_FRONT);
   rightSound.attach(TRIG_PIN_RIGHT, ECHO_PIN_RIGHT);
@@ -46,7 +46,7 @@ void setup() {
   //car.enableCruiseControl();
  
  
-  
+   
 }
 
 void loop() {
@@ -56,7 +56,6 @@ void loop() {
   // the car fits
   
   park();
-  
   //if(!parkMode){
   //handleInput();
   //}
@@ -145,6 +144,7 @@ void park() {
     const int left = -40;
 
     static const int initialRightDistance = rightSound.getDistance();
+    
     static int turnCount = 0;
     
     Serial.print("Initial rightdistance:");
@@ -173,13 +173,13 @@ void park() {
         Serial.print("Turncount:");
         Serial.println(turnCount);
 
-        Serial.print("Initial rightdistance:");
+        Serial.print("Initial RIGHT:");
         Serial.println(initialRightDistance);
         delay(100);
         Serial.print("Right:");
         Serial.println(rightDistance);
-        delay(150);
-        Serial.print("backDistance: " );
+        delay(100);
+        Serial.print("BACK: " );
         Serial.println(backDistance);
         delay(100);
 
@@ -187,7 +187,6 @@ void park() {
         car.rotate(-25); 
         turnCount++;
        }
-       Serial.println("turnCount:");
        Serial.println(turnCount);
 
       
@@ -196,18 +195,31 @@ void park() {
           //drive reverse into the space
           Serial.println("Entering Space");
           Serial.print("backDistance: " );
-          Serial.println(backDistance);
+           Serial.println(backDistance);
+           
+          odometerRight.begin();
+          static int odometerDistance = odometerRight.getDistance();
+          
+          Serial.print("ODO Distance: ");
+          Serial.println(odometerDistance);
+          
           car.setSpeed(backSpd);
+          if (odometerDistance == CAR_WIDTH || backDistance < 10){
+            car.rotate(27);
+            car.setSpeed(0);
+            turnCount++;
+            Serial.println(turnCount);
+          }
          }
-         if (backDistance < 15 && backDistance > 1){
+        }
+ /*        if (backDistance < 15 && backDistance > 1){
             //stop if close to car in back
             Serial.print("TurnCount - returning back: ");
             car.setSpeed(0);
-            car.rotate(30);
-            turnCount++;
-            Serial.println(turnCount);
-        }           
-       }
+            
+            
+        }           */    
+   
         if (turnCount == 2){
             Serial.println("turnCount == 2");
             if( frontDistance > backDistance) {
