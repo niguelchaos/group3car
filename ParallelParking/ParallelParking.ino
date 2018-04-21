@@ -84,7 +84,7 @@ void handleInput() { //handle serial input if there is any
 */
 boolean isParkingSpotAvailable() {
   double spotHypotenuse = rightSound.getDistance(); // Sensor at the right-front of the car.
-  double spotWidth = frontSound.getDistance(); // Sensor on the ight side of the car.
+  double spotWidth = frontSound.getDistance(); // Sensor on the right side of the car.
 
   double spotLength = sqrt(spotHypotenuse * spotHypotenuse - spotWidth * spotWidth);
 
@@ -92,4 +92,54 @@ boolean isParkingSpotAvailable() {
     return true;
   }
   return false;
+}
+
+//========== Get the Size of a Parking Spot ==========//
+double getParkingSpotSize(Odometer odometer) {
+  boolean obstacleDetected = false;
+
+  parkMode = true;
+  car.setSpeed(20);
+  odometer.begin();
+  car.begin();
+
+  double initialSideDistance = rightSound.getDistance();
+
+  /*
+    If the initial side distance is too tight then start looking for a spot
+    that has a width that is greater than the car width.
+  */
+  if (initialSideDistance <= CAR_WIDTH) {
+    while(rightSound.getDistance() <= initialSideDistance) {
+      // Do nothing
+    }
+  }
+
+  /*
+    Once the distance to the right is large enough
+    we can start looking for the next obstacle that has a distance less then or equal to the car width
+    Or, until the distance traveled is greater than the car length
+  */
+
+  while(!obstacleDetected) {
+    double d = rightSound.getDistance();
+
+    // Stop if an obstacle is detected
+    if (d <= CAR_WIDTH) {
+      obstacleDetected = true;
+    }
+
+    // Stop if distance traveled is greater than or equal to twice the car size
+    if (odometer.getDistance() >= CAR_LENGTH * 2) {
+      obstacleDetected = true;
+    }
+
+  }
+
+  //----- Cleanup -----//
+  car.stop();
+  parkMode = false;
+
+  Serial.println("return value:" + odometer.getDistance());
+  return odometer.getDistance();
 }
