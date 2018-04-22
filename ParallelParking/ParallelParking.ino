@@ -1,303 +1,276 @@
 #include <Smartcar.h>
-
-Odometer odometerLeft, odometerRight; //whoops, this is the speed thingy, not the sound one.
-Gyroscope gyro;
 Car car;
 
-SR04 frontSound; 
-const int TRIG_PIN_FRONT = 6; 
-const int ECHO_PIN_FRONT = 7; 
+Odometer odometerLeft, odometerRight;
 
-SR04 rightSound; 
+
+Gyroscope gyro(3);
+
+
+GP2Y0A21 IR_DIAG_FRONT;
+const int IR_PIN = A0;
+
+SR04 frontSound;
+const int TRIG_PIN_FRONT = 6;
+
+const int ECHO_PIN_FRONT = 7;
+
+SR04 rightSound;
 const int TRIG_PIN_RIGHT = 44;
-const int ECHO_PIN_RIGHT = 42; 
+const int ECHO_PIN_RIGHT = 42;
 
 SR04 backSound;
 const int TRIG_PIN_BACK = 35;
 const int ECHO_PIN_BACK = 34;
 
-GP2Y0A21 rearIR; 
-const int rearIR_PIN = 8; 
-
-
 const int CAR_SIZE = 25;
 const double CAR_LENGTH = 25; // Car length
 const double CAR_WIDTH = 15.5; // Car Width
-
 const int minParkSpotSize = 50;
+
 boolean parkMode = false;
- 
+
+int parkStage = 0; //The stage the automatic parking is in
 
 void setup() {
-  // put your setup code here, to run once:
-  Serial.begin(19200); //start the serial
-  gyro.attach();  
-  frontSound.attach(TRIG_PIN_FRONT, ECHO_PIN_FRONT);
-  rightSound.attach(TRIG_PIN_RIGHT, ECHO_PIN_RIGHT);
-  backSound.attach(TRIG_PIN_BACK, ECHO_PIN_BACK);
+   // put your setup code here, to run once:
+
+  gyro.attach();
+  delay(1500);
+
+  Serial.begin(9600); //start the serial
+  //delay(1500);
 
   odometerLeft.attach(2);
   odometerRight.attach(3);
-  
   odometerLeft.begin();
   odometerRight.begin();
+  frontSound.attach(TRIG_PIN_FRONT, ECHO_PIN_FRONT);
+  rightSound.attach(TRIG_PIN_RIGHT, ECHO_PIN_RIGHT);
+  backSound.attach(TRIG_PIN_BACK, ECHO_PIN_BACK);
+  IR_DIAG_FRONT.attach(IR_PIN);
   gyro.begin();
+
   car.begin(odometerLeft, odometerRight, gyro);
   //car.enableCruiseControl();
- 
- 
-   
+
+  delay(1000);
+
 }
-
-void loop() {
-  
-  // check the distance from one detected obstacle to the right
-  // to the next obstacle to the right to determine whether
-  // the car fits
-  
-  park();
-  //if(!parkMode){
-  //handleInput();
-  //}
-}
-
-void handleInput() { //handle serial input if there is any
-  if (Serial.available()) {
-    char input = Serial.read(); //read everything that has been received so far and log down the last entry
-    switch (input) {
-      case 'l': //rotate counter-clockwise going forward
-        car.setAngle(-75);
-        car.setSpeed(62);
-        delay(50);
-        car.setSpeed(30);
-        break;
-      case 'r': //turn clock-wise
-        car.setAngle(75);
-        car.setSpeed(62);
-        delay(50);
-        car.setSpeed(30);
-        break;
-      case 'f': //go ahead
-        car.setAngle(0);
-        car.setSpeed(62);
-        delay(50);
-        car.setSpeed(30);
-        break;
-      case 'b': //go back
-        car.setAngle(0);
-        car.setSpeed(62);
-        delay(50);
-        car.setSpeed(30);
-        break;
-      case 'p': // park
-        //park();
-//        getParkingSpotSize(odometerLeft);
-        Serial.println("parking");
-        break;
-      default: //if you receive something that you don't know, just stop
-        car.setSpeed(0);
-        car.setAngle(0);
-    }
-  }
-}
-
-/*double detectSpotSize() {
-  odometerRight.begin();
-  //float parkingSize = 0;
-  //parkMode = true;
-
-  // if we have begun detecting a spot and then we once again detect an obstacle, and the spot is greater than
-  // the car size, commence parking.
-  // P.S I don't think we need the first condition in the OR statement below, but I'm still considering.
-  //if(right.getDistance() <= 10 || encoderRight.distance() > CAR_SIZE * 2) {
-  if(rightSound.getDistance() <= 10 && odometerRight.getDistance() > CAR_SIZE * 2 || rightSound.getDistance() == 0 && odometerRight.getDistance() > CAR_SIZE * 2) {
-      park();
-  }
-}*/
-
-
-
-// Automatic parking
-void park() {
-  Serial.println("Entered parkmode");
-    parkMode = true;
-    
-  //check if there's enough space for parking
-  
-  //if(getParkingSpotSize(odometerRight) < minParkSpotSize){
-    //panic();
-    
-    //parkMode = false;
-    //return;
-  //}
-
-    int backDistance = backSound.getDistance();
-    int frontDistance = frontSound.getDistance();
-    int rightDistance = rightSound.getDistance();
-    int angularStartPoint = gyro.getAngularDisplacement();
-
-    
-
-    const int backSpd = -50;
-    const int frontSpd = 50;
-    const int right = 40;
-    const int left = -40;
-
-    static const int initialRightDistance = rightSound.getDistance();
-    
-    static int turnCount = 0;
-    
-    Serial.print("Initial rightdistance:");
-    Serial.println(initialRightDistance);
-    delay(100);
-    Serial.print("Right:");
-    Serial.println(rightDistance);
-    delay(150);
-    Serial.print("backDistance: " );
-    Serial.println(backDistance);
-    delay(100);
-
-    Serial.print("frontDistance: " );
-    Serial.println(frontDistance);
-    delay(100);
-
-    //start beside car in front
-    if(rightDistance == initialRightDistance) {
-      car.setSpeed(backSpd);  
-    }
-    if(rightDistance != initialRightDistance){ 
-       car.setSpeed(0);
-       
-       if (rightDistance == 0 && turnCount == 0){ //alternatively have rightdistance > initialrdis
-        Serial.println("Turning in");
-        Serial.print("Turncount:");
-        Serial.println(turnCount);
-
-        Serial.print("Initial RIGHT:");
-        Serial.println(initialRightDistance);
-        delay(100);
-        Serial.print("Right:");
-        Serial.println(rightDistance);
-        delay(100);
-        Serial.print("BACK: " );
-        Serial.println(backDistance);
-        delay(100);
-
-        //rotate car in if space detected
-        car.rotate(-25); 
-        turnCount++;
-       }
-       Serial.println(turnCount);
-
-      
-       if (turnCount == 1) {
-        if (backDistance > 15 || backDistance == 0){ 
-          //drive reverse into the space
-          Serial.println("Entering Space");
-          Serial.print("backDistance: " );
-           Serial.println(backDistance);
-           
-          odometerRight.begin();
-          static int odometerDistance = odometerRight.getDistance();
-          
-          Serial.print("ODO Distance: ");
-          Serial.println(odometerDistance);
-          
-          car.setSpeed(backSpd);
-          if (odometerDistance == CAR_WIDTH || backDistance < 10){
-            car.rotate(27);
-            car.setSpeed(0);
-            turnCount++;
-            Serial.println(turnCount);
-          }
-         }
-        }
- /*        if (backDistance < 15 && backDistance > 1){
-            //stop if close to car in back
-            Serial.print("TurnCount - returning back: ");
-            car.setSpeed(0);
-            
-            
-        }           */    
-   
-        if (turnCount == 2){
-            Serial.println("turnCount == 2");
-            if( frontDistance > backDistance) {
-              Serial.println("going to middle of space");
-              car.setSpeed(frontSpd);
-            }
-            else if (frontDistance < backDistance){
-              car.setSpeed(backSpd);   
-            }
-            else if (frontDistance == backDistance){
-              car.setSpeed(0);
-              turnCount = 0;
-            }
-          }
-          
-        }  
-//  Serial.println(odometerRight.getDistance());
-  parkMode = false; //resume control  
-}
-
-
 
 //========== Get the Size of a Parking Spot ==========//
-int getParkingSpotSize(Odometer odometer) {
-  boolean obstacleDetected = false;
-  car.setAngle(0);
-  car.setSpeed(62);
-  delay(50);
-  car.setSpeed(25);
-  odometer.begin();
+boolean getParkingSpotSize(Odometer odometer) {
 
-  int initialSideDistance = rightSound.getDistance();
 
-  Serial.println("intialSide: " + initialSideDistance);
-  //Serial.println(odometer.getDistance());
-  //Serial.println("hello:" + initialSideDistance);
+  //parkMode = true;
+  car.setSpeed(40);
+
+  double initialSideDistance = rightSound.getMedianDistance();
+
   /*
     If the initial side distance is too tight then start looking for a spot
     that has a width that is greater than the car width.
   */
-  /*if (initialSideDistance <= CAR_WIDTH) {
-    while(rightSound.getDistance() <= initialSideDistance) {
+  if (initialSideDistance <= CAR_WIDTH || initialSideDistance != 0) {
+    while(rightSound.getMedianDistance() <= initialSideDistance) {
       // Do nothing
     }
-  }*/
+  }
 
   /*
     Once the distance to the right is large enough
     we can start looking for the next obstacle that has a distance less then or equal to the car width
     Or, until the distance traveled is greater than the car length
   */
+  odometer.begin();
 
-  /*while(!obstacleDetected) {
-    double d = rightSound.getDistance();
+  while(true) {
+    double d = rightSound.getMedianDistance();
+    double distanceTraveled = odometer.getDistance();
 
     // Stop if an obstacle is detected
-    if (d <= CAR_WIDTH) {
-      obstacleDetected = true;
-    }
+    if (d <= CAR_WIDTH && distanceTraveled >= CAR_LENGTH * 2) {
+      return true;
 
-    // Stop if distance traveled is greater than or equal to twice the car size
-    if (odometer.getDistance() >= CAR_LENGTH * 2) {
-      obstacleDetected = true;
+    } else if(distanceTraveled >= CAR_LENGTH * 2){
+      return true;
+      //break;
+    } else if(d <= CAR_WIDTH && distanceTraveled < CAR_LENGTH*2){
+      //this should be something that notifies the driver. Is this sufficient?
+      Serial.println("too small");
+      car.setSpeed(0);
+      return false;
+      //break;
     }
-
-  }*/
+  }
 
   //----- Cleanup -----//
-  car.stop();
+  car.setSpeed(0);
 
-  Serial.println("return value:" + odometer.getDistance());
-  return odometer.getDistance();
+  //Serial.println("return value:" + odometer.getDistance());
+  //return odometer.getMedianDistance();
+  }
+
+void park() {
+
+static int isCalibrated = 0;
+ int backDistance = backSound.getDistance();
+ int frontDistance = frontSound.getDistance();
+ int rightDistance = rightSound.getDistance();
+
+if (isCalibrated = 0){
+  int offset = gyro.calibrate();
+  isCalibrated = 1;
+}
+ gyro.begin();
+ int angularStartPoint = gyro.getAngularDisplacement();
+
+ const int backSpd = -30;
+ const int frontSpd = 30;
+ const int right = 13;
+ const int left = -13;
+
+ Serial.print("backDistance: " );
+ Serial.println(backDistance);
+ Serial.print("frontDistance: " );
+ Serial.println(frontDistance);
+ Serial.print("     angular Displacement: ");
+ Serial.println(angularStartPoint);
+
+
+ switch(parkStage){
+
+    //Phase 1: Rotate left
+    case 0:
+    Serial.println("                CASE 0");
+     car.setSpeed(0);
+     car.rotate(left);
+     parkStage = 1;
+     parkMode=true;
+     break;
+
+    //Phase 2:  Reverse till obstacle is too close
+    case 1:
+    Serial.println("                CASE 1");
+     if(backDistance < 20 && backDistance != 0) { parkStage=2; }
+     else{ car.setSpeed(backSpd);}
+     break;
+
+    //Phase 3: Rotate to face forward
+    case 2:
+    Serial.println("                CASE 2");
+     car.rotate(right);
+     car.go(-4);
+     parkStage = 3;
+     break;
+
+    //Phase 4: Roll forward till space between two obstacles is relatively even
+    case 3:
+    Serial.println("                CASE 3");
+     if(frontDistance > backDistance || frontDistance == 0) { car.setSpeed( frontSpd );}
+     else{
+       Serial.println("Completed Park");
+     car.setSpeed(0);
+     parkMode = false;
+     parkStage = 0;
+
+     }
+
+ }
+
+}
+
+void handleInput() { //handle serial input if there is any
+  if (Serial.available()) {
+    char input = Serial.read(); //read everything that has been received so far and log down the last entry
+
+        switch (input) {
+          case 'l': //rotate counter-clockwise going forward
+            car.setSpeed(40);
+            car.setAngle(-35);
+            break;
+          case 'r': //turn clock-wise
+            car.setSpeed(40);
+            car.setAngle(35);
+            break;
+          case 'f': //go ahead
+            car.setSpeed(40);
+            car.setAngle(0);
+            break;
+          case 'b': //go back
+            car.setSpeed(-40);
+            car.setAngle(0);
+            break;
+          case 'p': // park
+            Serial.println("parking");
+            if(getParkingSpotSize(odometerLeft) == true){
+              car.setSpeed(0);
+              delay(50);
+              park();
+            }
+            break;
+          default: //if you receive something that you don't know, just stop
+            car.setSpeed(0);
+            car.setAngle(0);
+
+    }
+  }
+}
+
+
+void steeringAdjustment(){
+    unsigned int gyroDplmnt = gyro.getAngularDisplacement();
+
+    //Serial.println("offset:");
+    //Serial.println(gyro.calibrate());
+
+    int offset = gyro.calibrate();
+
+    Serial.println("displacement:");
+    Serial.println(gyroDplmnt);
+
+    if(gyroDplmnt > 0 && gyroDplmnt <= 180){
+      if(gyroDplmnt < 90){
+        car.rotate(-gyroDplmnt-offset);
+      } else {
+        int deviation = gyroDplmnt - 180;
+        car.rotate(deviation - offset);
+      }
+    } else if(gyroDplmnt > 180 && gyroDplmnt <= 360){
+      if(gyroDplmnt <= 270){
+        int deviation = gyroDplmnt - 180;
+        car.rotate(-deviation - offset);
+      } else {
+        int deviation = 360 - gyroDplmnt;
+        car.rotate(deviation - offset);
+      }
+    }
+    //car.setSpeed(-60);
 }
 
 void panic(){
     //Cry in agony, not enough parking space
+    Serial.print("Too T H I C C  to fit in there stop fatshaming me :'<");
+
 }
 
 
+void loop() {
+
+ car.updateMotors();
+
+  //Serial.println(gyro.getAngularDisplacement());
+  gyro.update();
+
+  if( parkMode == true){
+    Serial.println("entering parkmode");
+    Serial.println(parkStage);
+
+    park();
+ }
+ else{
+  handleInput();
+ }
+}
 
 
