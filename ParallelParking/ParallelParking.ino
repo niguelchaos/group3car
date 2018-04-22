@@ -2,7 +2,11 @@
 Car car;
 
 Odometer odometerLeft, odometerRight; 
-Gyroscope gyro;
+
+Gyroscope gyro(3);
+
+GP2Y0A21 IR_DIAG_FRONT;
+const int IR_PIN = A0;
 
 SR04 frontSound; 
 const int TRIG_PIN_FRONT = 6; 
@@ -24,9 +28,11 @@ boolean parkMode = false;
 
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(9600); //start the serial
+  //gyro.attach();
   
-  gyro.attach();
+  Serial.begin(9600); //start the serial
+  //delay(1500);
+  
   odometerLeft.attach(2);
   odometerRight.attach(3);
   odometerLeft.begin();
@@ -34,9 +40,12 @@ void setup() {
   frontSound.attach(TRIG_PIN_FRONT, ECHO_PIN_FRONT);
   rightSound.attach(TRIG_PIN_RIGHT, ECHO_PIN_RIGHT);
   backSound.attach(TRIG_PIN_BACK, ECHO_PIN_BACK);
-  gyro.begin();
+  IR_DIAG_FRONT.attach(IR_PIN);
+  //gyro.begin();
   car.begin(odometerLeft, odometerRight, gyro);
   //car.enableCruiseControl();
+
+  delay(1000);
   
 }
 void loop() {
@@ -59,13 +68,29 @@ void loop() {
   car.setMotorSpeed(0, -60);
   delay(100);
   car.go(-30);*/
+
+  /*double parkspot = isParkingSpotAvailable();
+
+  Serial.println("can park:");
+  Serial.println(parkspot);*/
   
-  park();
+  //park();
   //Serial.println(gyro.getAngularDisplacement());
-  gyro.update();
+
+  car.setSpeed(-60);
+
+
+  //steeringAdjustment();
+  //gyro.update();
+
+  /*int offset = gyro.calibrate(100);
+
+  Serial.println("offset:");
+  Serial.println(offset);
+  
   //delay(100);
   //if(!parkMode){
-  //handleInput();
+  //handleInput();*/
   //}
 }
 void handleInput() { //handle serial input if there is any
@@ -89,7 +114,7 @@ void handleInput() { //handle serial input if there is any
         car.setAngle(0);
         break;
       case 'p': // park
-        park();
+        //park();
         //getParkingSpotSize(odometerLeft);
         Serial.println("parking");
         break;
@@ -100,30 +125,37 @@ void handleInput() { //handle serial input if there is any
   }
 }
 
-void steeringAdjustment(){
-  Serial.println("displacement:");
+/*void steeringAdjustment(){
+    
+    unsigned int gyroDplmnt = gyro.getAngularDisplacement();
+
+    //Serial.println("offset:");
+    //Serial.println(gyro.calibrate());
+
+    int offset = gyro.calibrate();
+
+  
+    Serial.println("displacement:");
     Serial.println(gyroDplmnt);
-    delay(2000);
-    car.setSpeed(-60);
+    
     if(gyroDplmnt > 0 && gyroDplmnt <= 180){
       if(gyroDplmnt < 90){
-        car.rotate(gyroDplmnt);
+        car.rotate(-gyroDplmnt-offset);
       } else {
-        car.rotate(-gyroDplmnt); 
+        int deviation = gyroDplmnt - 180;
+        car.rotate(deviation - offset); 
       }
     } else if(gyroDplmnt > 180 && gyroDplmnt <= 360){
-      int degreeAdjustment = 360 - gyroDplmnt;
-      Serial.println("gyroDplmnt");
-      Serial.println(gyroDplmnt);
-      Serial.println("degreeAdjustment:");
-      Serial.println(degreeAdjustment);
-      if(degreeAdjustment < 90){
-        car.rotate(-degreeAdjustment);  
+      if(gyroDplmnt <= 270){
+        int deviation = gyroDplmnt - 180;
+        car.rotate(-deviation - offset);  
       } else {
-        car.rotate(degreeAdjustment);  
+        int deviation = 360 - gyroDplmnt;
+        car.rotate(deviation - offset);  
       }
     }
-}
+    car.setSpeed(-60);
+}*/
 
 // Automatic parking
 void park() {
@@ -140,7 +172,17 @@ void park() {
   const int right = 40;
   const int left = -40;
 
-  unsigned int gyroDplmnt = gyro.getAngularDisplacement();
+  delay(5000);
+  int IR_DIST = IR_DIAG_FRONT.getDistance();
+  Serial.println("IR_DIST:");
+  Serial.println(IR_DIST);
+
+  /*car.setSpeed(-40);
+  car.go(-10);
+  car.rotate(-40);
+  car.go(15);
+  car.rotate(40);
+  car.go(-5);*/
 
   int initialRightDistance = rightSound.getMedianDistance();
     
@@ -225,48 +267,28 @@ void park() {
   parkMode = false; //resume control
   
 }
-//========== Get the Size of a Parking Spot ==========//
-int getParkingSpotSize(Odometer odometer) {
-  boolean obstacleDetected = false;
-  car.setAngle(0);
-  car.setSpeed(62);
-  delay(50);
-  car.setSpeed(25);
-  odometer.begin();
-  int initialSideDistance = rightSound.getDistance();
-  Serial.println("intialSide: " + initialSideDistance);
-  //Serial.println(odometer.getDistance());
-  //Serial.println("hello:" + initialSideDistance);
-  /*
-    If the initial side distance is too tight then start looking for a spot
-    that has a width that is greater than the car width.
-  */
-  /*if (initialSideDistance <= CAR_WIDTH) {
-    while(rightSound.getDistance() <= initialSideDistance) {
-      // Do nothing
-    }
-  }*/
-  /*
-    Once the distance to the right is large enough
-    we can start looking for the next obstacle that has a distance less then or equal to the car width
-    Or, until the distance traveled is greater than the car length
-  */
-  /*while(!obstacleDetected) {
-    double d = rightSound.getDistance();
-    // Stop if an obstacle is detected
-    if (d <= CAR_WIDTH) {
-      obstacleDetected = true;
-    }
-    // Stop if distance traveled is greater than or equal to twice the car size
-    if (odometer.getDistance() >= CAR_LENGTH * 2) {
-      obstacleDetected = true;
-    }
-  }*/
-  //----- Cleanup -----//
-  car.stop();
-  Serial.println("return value:" + odometer.getDistance());
-  return odometer.getDistance();
+
+//========== Check if parking spot size is large enough ==========//
+/*
+  This variant of checking parking spots uses trigonometric calculation, instead of moving the car, to measure the distance.
+  This assumes that there is a sound sensor placed at the right side of the car, and one placed diagonally at the right-front corner of the car.
+*/
+double isParkingSpotAvailable() {
+  double spotHypotenuse = IR_DIAG_FRONT.getDistance(); // Sensor at the right-front of the car.
+  double spotWidth = frontSound.getDistance(); // Sensor on the ight side of the car.
+  double spotLength = sqrt(spotHypotenuse * spotHypotenuse - spotWidth * spotWidth);
+
+  delay(1000);
+  Serial.println("spotLength: ");
+  Serial.println(spotLength);
+  
+  if (spotWidth >= CAR_WIDTH && spotLength >= CAR_LENGTH) {
+    return spotLength;
+  }
+  return spotLength;
+  //return false;
 }
+
 void panic(){
     //Cry in agony, not enough parking space
 }
