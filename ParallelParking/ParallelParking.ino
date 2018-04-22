@@ -78,6 +78,7 @@ void handleInput() { //handle serial input if there is any
 }
 
 //========== Check if parking spot size is large enough ==========//
+// getMedianDistance()
 /*
   This variant of checking parking spots uses trigonometric calculation, instead of moving the car, to measure the distance.
   This assumes that there is a sound sensor placed at the right side of the car, and one placed diagonally at the right-front corner of the car.
@@ -100,7 +101,6 @@ double getParkingSpotSize(Odometer odometer) {
 
   parkMode = true;
   car.setSpeed(20);
-  odometer.begin();
   car.begin();
 
   double initialSideDistance = rightSound.getDistance();
@@ -120,7 +120,7 @@ double getParkingSpotSize(Odometer odometer) {
     we can start looking for the next obstacle that has a distance less then or equal to the car width
     Or, until the distance traveled is greater than the car length
   */
-
+  odometer.begin();
   while(!obstacleDetected) {
     double d = rightSound.getDistance();
 
