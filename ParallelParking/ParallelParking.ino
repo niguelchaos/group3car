@@ -29,7 +29,7 @@ int parkStage = 0; //The stage the automatic parking is in
 
 void setup() {
    // put your setup code here, to run once:
-  //gyro.attach();
+  gyro.attach();
   
   Serial.begin(9600); //start the serial
   //delay(1500);
@@ -42,7 +42,7 @@ void setup() {
   rightSound.attach(TRIG_PIN_RIGHT, ECHO_PIN_RIGHT);
   backSound.attach(TRIG_PIN_BACK, ECHO_PIN_BACK);
   IR_DIAG_FRONT.attach(IR_PIN);
-  //gyro.begin();
+  gyro.begin();
   car.begin(odometerLeft, odometerRight, gyro);
   //car.enableCruiseControl();
 
@@ -54,7 +54,7 @@ void loop() {
  car.updateMotors();
 
   //Serial.println(gyro.getAngularDisplacement());
-  //gyro.update();
+  gyro.update();
   //delay(100);
   if(!parkMode){
   handleInput();
@@ -117,10 +117,10 @@ void park() {
   int frontDistance = frontSound.getDistance();
   int rightDistance = rightSound.getDistance();
   int angularStartPoint = gyro.getAngularDisplacement();
-  const int backSpd = -40;
-  const int frontSpd = 40;
-  const int right = 20;
-  const int left = -20;
+  const int backSpd = -20;
+  const int frontSpd = 20;
+  const int right = 15;
+  const int left = -15;
   
   Serial.print("backDistance: " );
   Serial.println(backDistance);  
@@ -132,26 +132,28 @@ void park() {
     
      //Phase 1: Rotate left
      case 0:
+      car.setSpeed(1);
       car.rotate(left);
       parkStage = 1;
-      car.setSpeed(0);
+    
       break;
       
      //Phase 2:  Reverse till obstacle is too close
      case 1:
-      if(backDistance > 5){ car.setSpeed(backSpd); }
-      else{ parkStage = 2;}
+      if(backDistance < 20 && backDistance != 0) { parkStage=2; }
+      else{ car.go(-2);}
       break;
       
      //Phase 3: Rotate to face forward
      case 2:
       car.rotate(right);
+      car.go(-5);
       parkStage = 3;
       break;
       
      //Phase 4: Roll forward till space between two obstacles is relatively even
      case 3:
-      if(frontDistance > backDistance) { car.setSpeed( frontSpd );}
+      if(frontDistance > backDistance || frontDistance == 0) { car.setSpeed( frontSpd );}
       else{
       car.setSpeed(0);
       parkMode = false;
@@ -163,13 +165,6 @@ void park() {
     
 }
 
-
-// Workaround for initial wheel friction 
-void parkPhaseRoll(int speed){
- 
-    
-  
-}
 
 
 boolean isParkingSpotAvailable(){
