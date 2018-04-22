@@ -3,14 +3,22 @@
 Odometer odometerLeft, odometerRight; 
 Gyroscope gyro;
 Car car;
+
+GP2Y0A21 IR_DIAG_FRONT;
+const int IR_PIN = A0;
+
 SR04 frontSound; 
 const int TRIG_PIN_FRONT = 6; 
 const int ECHO_PIN_FRONT = 7; 
+
 SR04 rightSound; 
 const int TRIG_PIN_RIGHT = 44;
 const int ECHO_PIN_RIGHT = 42; 
-GP2Y0A21 rearIR; // are we using infrared here??
-const int rearIR_PIN = 8; //don't know, need to check car
+
+SR04 backSound;
+const int TRIG_PIN_BACK = 35;
+const int ECHO_PIN_BACK = 34;
+
 const int CAR_SIZE = 25;
 const double CAR_LENGTH = 25; // Car length
 const double CAR_WIDTH = 15.5; // Car Width
@@ -20,21 +28,25 @@ boolean parkMode = false;
 int parkStage = 0; //The stage the automatic parking is in
 
 void setup() {
-  // put your setup code here, to run once:
+   // put your setup code here, to run once:
+  //gyro.attach();
   
-
-  gyro.attach();
+  Serial.begin(9600); //start the serial
+  //delay(1500);
+  
   odometerLeft.attach(2);
   odometerRight.attach(3);
   odometerLeft.begin();
   odometerRight.begin();
   frontSound.attach(TRIG_PIN_FRONT, ECHO_PIN_FRONT);
   rightSound.attach(TRIG_PIN_RIGHT, ECHO_PIN_RIGHT);
-  rearIR.attach(rearIR_PIN);
+  backSound.attach(TRIG_PIN_BACK, ECHO_PIN_BACK);
+  IR_DIAG_FRONT.attach(IR_PIN);
+  //gyro.begin();
   car.begin(odometerLeft, odometerRight, gyro);
-  gyro.begin();
+  //car.enableCruiseControl();
 
-  Serial.begin(9600); //start the serial
+  delay(1000);
 }
 
 void loop() {
@@ -75,10 +87,8 @@ void handleInput() { //handle serial input if there is any
         car.setSpeed(30);
         break;
       case 'b': //go back
+       car.setSpeed(-40);
         car.setAngle(0);
-        car.setSpeed(60);
-        delay(50);
-        car.setSpeed(30);
         break;
       case 'p': // park
         park();
@@ -103,12 +113,12 @@ void park() {
     //return;
   //}
   
-  int backDistance = rearIR.getDistance();
+  int backDistance = backSound.getDistance();
   int frontDistance = frontSound.getDistance();
   int rightDistance = rightSound.getDistance();
   int angularStartPoint = gyro.getAngularDisplacement();
-  const int backSpd = -50;
-  const int frontSpd = 50;
+  const int backSpd = -40;
+  const int frontSpd = 40;
   const int right = 20;
   const int left = -20;
   
@@ -124,11 +134,12 @@ void park() {
      case 0:
       car.rotate(left);
       parkStage = 1;
+      car.setSpeed(0);
       break;
       
      //Phase 2:  Reverse till obstacle is too close
      case 1:
-      if(backDistance > 5){ parkPhaseRoll(backSpd);}
+      if(backDistance > 5){ car.setSpeed(backSpd); }
       else{ parkStage = 2;}
       break;
       
@@ -140,7 +151,7 @@ void park() {
       
      //Phase 4: Roll forward till space between two obstacles is relatively even
      case 3:
-      if(frontDistance > backDistance) { parkPhaseRoll(frontSpd);}
+      if(frontDistance > backDistance) { car.setSpeed( frontSpd );}
       else{
       car.setSpeed(0);
       parkMode = false;
@@ -155,14 +166,8 @@ void park() {
 
 // Workaround for initial wheel friction 
 void parkPhaseRoll(int speed){
-
-    int direction = 1;
-    if(speed < 0) {direction = -1;}
-   
-    car.setSpeed( 60 * direction);
-    delay(50);
-    car.setSpeed( speed );
-    car.go(2*direction);
+ 
+    
   
 }
 
