@@ -27,6 +27,7 @@ const int CAR_SIZE = 25;
 const double CAR_LENGTH = 25; // Car length
 const double CAR_WIDTH = 15.5; // Car Width
 const int minParkSpotSize = 50;
+
 boolean parkMode = false;
 
 int parkStage = 0; //The stage the automatic parking is in
@@ -62,14 +63,15 @@ void loop() {
 
   //Serial.println(gyro.getAngularDisplacement());
   gyro.update();
-  //delay(100);
-  if(!parkMode){
-  handleInput();
-  }
-  else{
+  
+  if( parkMode == true){
+    Serial.println("entering parkmode");
+    Serial.println(parkStage);
     park();
-  }
-
+ }
+ else{
+  handleInput();
+ }
 }
 
 void handleInput() { //handle serial input if there is any
@@ -94,8 +96,14 @@ void handleInput() { //handle serial input if there is any
             car.setAngle(0);
             break;
           case 'p': // park
-            //park();
-            getParkingSpotSize(odometerLeft);
+          
+            if(getParkingSpotSize(odometerLeft)){
+              car.setSpeed(0);
+              delay(50);
+              park();  
+            }
+            
+            
             Serial.println("parking");
             break;
           default: //if you receive something that you don't know, just stop
@@ -143,7 +151,7 @@ void steeringAdjustment(){
 
 //========== Get the Size of a Parking Spot ==========//
 boolean getParkingSpotSize(Odometer odometer) {
-  boolean obstacleDetected = false;
+
 
   //parkMode = true;
   car.setSpeed(40);
@@ -167,21 +175,22 @@ boolean getParkingSpotSize(Odometer odometer) {
   */
   odometer.begin();
   
-  while(!obstacleDetected) {
+  while(true) {
     double d = rightSound.getMedianDistance();
     double distanceTraveled = odometer.getDistance();
     
     // Stop if an obstacle is detected
     if (d <= CAR_WIDTH && distanceTraveled >= CAR_LENGTH * 2) {
-      obstacleDetected = true;
-      park();
+      return true;
+
     } else if(distanceTraveled >= CAR_LENGTH * 2){
-      park();
-      break;
+      return true;
+      //break;
     } else if(d <= CAR_WIDTH && distanceTraveled < CAR_LENGTH*2){
       //this should be something that notifies the driver. Is this sufficient?
       Serial.println("too small");
-      break;
+      return false;
+      //break;
     }
   }
 
@@ -194,13 +203,13 @@ boolean getParkingSpotSize(Odometer odometer) {
 
  void park() {
   
-  int backDistance = backSound.getMedianDistance();
-  int frontDistance = frontSound.getMedianDistance();
-  int rightDistance = rightSound.getMedianDistance();
+  int backDistance = backSound.getDistance();
+  int frontDistance = frontSound.getDistance();
+  int rightDistance = rightSound.getDistance();
   int angularStartPoint = gyro.getAngularDisplacement();
-  int angularStartPoint = gyro.getAngularDisplacement();
-  const int backSpd = -20;
-  const int frontSpd = 20;
+
+  const int backSpd = -30;
+  const int frontSpd = 30;
   const int right = 15;
   const int left = -15;
   
@@ -214,16 +223,16 @@ boolean getParkingSpotSize(Odometer odometer) {
     
      //Phase 1: Rotate left
      case 0:
-      car.setSpeed(1);
+      car.setSpeed(0);
       car.rotate(left);
       parkStage = 1;
-    
+      parkMode=true;
       break;
       
      //Phase 2:  Reverse till obstacle is too close
      case 1:
       if(backDistance < 20 && backDistance != 0) { parkStage=2; }
-      else{ car.go(-2);}
+      else{ car.setSpeed(backSpd);}
       break;
       
      //Phase 3: Rotate to face forward
@@ -237,6 +246,7 @@ boolean getParkingSpotSize(Odometer odometer) {
      case 3:
       if(frontDistance > backDistance || frontDistance == 0) { car.setSpeed( frontSpd );}
       else{
+        Serial.println("Completed Park");
       car.setSpeed(0);
       parkMode = false;
       parkStage = 0;
@@ -246,8 +256,6 @@ boolean getParkingSpotSize(Odometer odometer) {
   }    
     
 }
-
-
 
 void panic(){
     //Cry in agony, not enough parking space
