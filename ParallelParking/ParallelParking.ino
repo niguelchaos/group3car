@@ -167,18 +167,6 @@ void park() {
 
 
 
-boolean isParkingSpotAvailable(){
-  double spotHypotenuse = rightSound.getDistance(); // Sensor at the right-front of the car.
-  double spotWidth = frontSound.getDistance(); // Sensor on the ight side of the car.
-
-  double spotLength = sqrt(spotHypotenuse * spotHypotenuse - spotWidth * spotWidth);
-
-  if (spotWidth >= CAR_WIDTH && spotLength >= CAR_LENGTH) {
-    return true;
-  }
-  return false;
-}
-
 void panic(){
     //Cry in agony, not enough parking space
     Serial.print("Too T H I C C  to fit in there stop fatshaming me :'<");
